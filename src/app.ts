@@ -13,29 +13,31 @@ import { authRoutes } from './routes/auth';
 import { statsRoutes } from './routes/stats';
 import { setupUnhandledErrors } from './middleware/unhandledErrors';
 
-// Configuration des gestionnaires d'erreurs globaux
 setupUnhandledErrors();
 
 const app = express();
 
-app.use(cors());
-app.use(helmet());
+app.use(cors({
+    origin: 'http://localhost:5173',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+}));
+
+app.use(helmet({
+    contentSecurityPolicy: false,
+}));
+
 app.use(httpLogger);
 app.use(express.json());
 
-// Documentation API
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-
-// Routes publiques
 app.use('/api/auth', authRoutes);
 
-// Routes protégées
 app.use('/api/students', authMiddleware, studentRoutes);
 app.use('/api/courses', authMiddleware, courseRoutes);
 app.use('/api/grades', authMiddleware, gradeRoutes);
 app.use('/api/stats', authMiddleware, statsRoutes);
 
-// Middleware de gestion d'erreurs
 app.use(errorHandler);
 
 export default app;
